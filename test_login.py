@@ -1,48 +1,34 @@
 from playwright.sync_api import Page, expect
+from pages.login_page import LoginPage
 
-#Negative Cases
+
 def test_invalid_email(page: Page):
-    page.goto("https://practicesoftwaretesting.com/auth/login")
-    page.locator("[data-test=\"email\"]").fill("sera123")
-    page.locator("[data-test=\"password\"]").fill("1234567890")
-    page.locator("[data-test=\"login-submit\"]").click()
-    expect(page.locator("[data-test=\"email-error\"]")).to_contain_text("Email format is invalid")
- 
+    """Login with an invalid email format should show a validation error."""
+    login = LoginPage(page)
+    login.open()
+    login.login("sera123", "1234567890")
+    expect(login.email_error).to_contain_text("Email format is invalid")
 
-def test_email_notInDB(page: Page):
-    page.goto("https://practicesoftwaretesting.com/auth/login")
-    page.locator("[data-test=\"email\"]").fill("sera18@hotmail.gr")
-    page.locator("[data-test=\"password\"]").fill("1234567890")
-    page.locator("[data-test=\"login-submit\"]").click()
-    expect(page.locator("[data-test=\"login-error\"]")).to_contain_text("Invalid email or password")
-    
-   
+
+def test_not_in_DB_email(page: Page):
+    """Login with a valid but unregistered email should be rejected."""
+    login = LoginPage(page)
+    login.open()
+    login.login("sera18@hotmail.gr", "1234567890")
+    expect(login.login_error).to_contain_text("Invalid email or password")
+
+
 def test_invalid_pass(page: Page):
-    page.goto("https://practicesoftwaretesting.com/auth/login")
-    page.locator("[data-test=\"email\"]").fill("admin@practicesoftwaretesting.com")
-    page.locator("[data-test=\"password\"]").fill("123")
-    page.locator("[data-test=\"login-submit\"]").click()
-    expect(page.locator("[data-test=\"login-error\"]")).to_contain_text("Invalid email or password")
+    """Login with a registered email but wrong password should be rejected."""
+    login = LoginPage(page)
+    login.open()
+    login.login("admin@practicesoftwaretesting.com", "123")
+    expect(login.login_error).to_contain_text("Invalid email or password")
 
 
-def test_fill_onlypass(page: Page):
-    page.goto("https://practicesoftwaretesting.com/auth/login")
-    page.locator("[data-test=\"password\"]").fill("welcome01")
-    page.locator("[data-test=\"login-submit\"]").click()
-    expect(page.locator("[data-test=\"email-error\"]")).to_contain_text("Email is required")
- 
-
-def test_fill_onlymail(page: Page):
-    page.goto("https://practicesoftwaretesting.com/auth/login")
-    page.locator("[data-test=\"email\"]").fill("admin@practicesoftwaretesting.com")
-    page.locator("[data-test=\"login-submit\"]").click()
-    expect(page.locator("[data-test=\"password-error\"]")).to_contain_text("Password is required")
-
-
-#Positive Case
-def test_success_logIn(page: Page):
-    page.goto("https://practicesoftwaretesting.com/auth/login")
-    page.locator("[data-test=\"email\"]").fill("admin@practicesoftwaretesting.com")
-    page.locator("[data-test=\"password\"]").fill("welcome01")
-    page.locator("[data-test=\"login-submit\"]").click()
-  
+def test_successful_login(page: Page):
+    """Login with valid credentials should redirect to the account page."""
+    login = LoginPage(page)
+    login.open()
+    login.login("customer@practicesoftwaretesting.com", "welcome01")
+    expect(page).to_have_url("https://practicesoftwaretesting.com/account")

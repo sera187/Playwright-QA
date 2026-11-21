@@ -1,15 +1,12 @@
 from playwright.sync_api import Page, expect
+from pages.product_page import ProductPage
 
-BASE_URL = "https://practicesoftwaretesting.com"
 
 def test_add_product_to_cart(page: Page):
-    page.goto(BASE_URL)
-    page.get_by_role("link",name="Bolt Cutters").click()
-    expect(page.locator("[data-test=\"product-name\"]")).to_contain_text("Bolt Cutters")
-    page.locator("[data-test=\"add-to-cart\"]").click()
-    page.locator("[data-test=\"increase-quantity\"]").click()
-    page.locator("[data-test=\"add-to-cart\"]").click()
-    page.pause()
-    expect(page.locator("[data-test=\"cart-quantity\"]")).to_have_text("1")
-   
-
+    """Adding a product to the cart should update the cart quantity."""
+    product = ProductPage(page)
+    product.open()
+    product.open_product("Bolt Cutters")
+    expect(product.product_name).to_contain_text("Bolt Cutters")
+    product.add_to_cart()
+    expect(product.cart_quantity).to_have_text("1")
